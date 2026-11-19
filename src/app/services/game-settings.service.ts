@@ -4,15 +4,13 @@ import { Injectable } from '@angular/core';
   providedIn: 'root'
 })
 export class GameSettingsService {
-  private difficulty: string = 'normal'
+  private difficulty: string = 'normal';
 
   setDifficulty(selectedDifficulty: string) {
-    this.difficulty = selectedDifficulty
+    this.difficulty = selectedDifficulty;
   }
 
   getDifficulty(): string {
-    return this.difficulty
+    return this.difficulty;
   }
-  
-  constructor() { }
 }

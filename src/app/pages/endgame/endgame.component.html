@@ -2,8 +2,8 @@
 <app-navigation></app-navigation>
 
 <div class="container">
-  <h1 *ngIf="condition === false" style="color: red">Game Over</h1>
-  <h1 *ngIf="condition === true" style="color: green">You Win!</h1>
+  <h1 *ngIf="!condition" style="color: red">Game Over</h1>
+  <h1 *ngIf="condition" style="color: green">You Win!</h1>
 
   <h2>Score: {{ score }}</h2>
 

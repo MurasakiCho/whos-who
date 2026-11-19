@@ -16,11 +16,11 @@ export class HomeComponent implements OnInit {
   constructor(private router: Router, private playlistService: PlaylistService) {}
 
   genres: { name: string; playlist_id: string }[] = []
-  selectedGenre: String = ""
-  selectedPlaylistId: String = ""
+  selectedGenre: string = ""
+  selectedPlaylistId: string = ""
   authLoading: boolean = false
   configLoading: boolean = false
-  token: String = "BQDfR42dcQLyvZg2eDHlSNYH7lwf84qBoFbaIzUKBnYAkqCjkKXsFaUkX9tORYZPUkfZ8yENSRgnUEYxAu7S-5RewETIkXMgnpUDFp5Z4j1pbbAA8Q8"
+  token: string = "BQDfR42dcQLyvZg2eDHlSNYH7lwf84qBoFbaIzUKBnYAkqCjkKXsFaUkX9tORYZPUkfZ8yENSRgnUEYxAu7S-5RewETIkXMgnpUDFp5Z4j1pbbAA8Q8"
   playlist: any
 
   ngOnInit(): void {
@@ -49,7 +49,7 @@ export class HomeComponent implements OnInit {
   //   })
   }
 
-  loadGenres = async (t: any) => {
+  loadGenres = async (t: any) => { // this is not loading anything from Spotify's API
     this.configLoading = true
 
     this.genres = [
@@ -63,15 +63,17 @@ export class HomeComponent implements OnInit {
       { name: "K-Pop ON!", playlist_id: "37i9dQZF1DX9tPFwDMOaN1" },
       { name: "Emo Forever", playlist_id: "37i9dQZF1DX9wa6XirBPv8" },
     ]
-    this.configLoading = false
+    this.configLoading = false // why did you set it to true in the first place?
   }
-
-  setGenre(selectedGenre: any) {
+  
+  setGenre(selectedGenre: any) { 
     const genreObj = this.genres.find((g) => g.name === selectedGenre)
+
     if (genreObj) {
       this.selectedGenre = genreObj.name
       this.selectedPlaylistId = genreObj.playlist_id
     }
+
     fetchFromSpotify({token: this.token, endpoint: "playlists/" + this.selectedGenre, params: ''})
     .then((value) => {
       this.playlistService.setPlaylist(value)

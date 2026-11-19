@@ -7,9 +7,7 @@ import { Component, OnInit } from '@angular/core';
 })
 export class LeaderboardComponent implements OnInit {
 
-  constructor() { }
-
   ngOnInit(): void {
-  }
+  };
 
 }

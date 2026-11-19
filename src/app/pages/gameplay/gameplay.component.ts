@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { faPlayCircle, faPauseCircle, faStopCircle } from '@fortawesome/free-solid-svg-icons';
 import { Howl } from 'howler';
 import { GameSettingsService } from "../../services/game-settings.service";
@@ -10,14 +10,14 @@ import { Router } from "@angular/router";
   templateUrl: './gameplay.component.html',
   styleUrls: ['./gameplay.component.css']
 })
-export class GameplayComponent implements OnInit {
+export class GameplayComponent implements OnInit, OnDestroy {
   maxWrongAnswers: number = 4;
   wrongAnswers: number = 0;
   songUrl: string = '';
   sound!: Howl;
-  data: any;
+  playlist: any;
   image_url: string = ''
-  token: String = 'YOUR_SPOTIFY_TOKEN';
+  token: String = 'YOUR_SPOTIFY_TOKEN'; // not used?
   tracks: any[] = [];
   currentTrackIndex: number = 0;
   artists: string[] = [];
@@ -38,11 +38,11 @@ export class GameplayComponent implements OnInit {
   constructor(private router: Router, private gameSettingsService: GameSettingsService, private playlistService: PlaylistService) { }
 
   ngOnInit(): void {
-    this.data = this.playlistService.getPlaylist()
-    if (this.data) {
-      this.tracks = this.data.tracks.items.filter((item: any) => item.track.preview_url !== null);
+    this.playlist = this.playlistService.getPlaylist()
+    if (this.playlist) {
+      this.tracks = this.playlist.tracks.items.filter((item: any) => item.track.preview_url !== null);
       this.shuffleArray(this.tracks)
-      this.image_url = this.data.images[0].url
+      this.image_url = this.playlist.images[0].url
       this.loadTrack(this.currentTrackIndex);
     }
 
@@ -66,7 +66,7 @@ export class GameplayComponent implements OnInit {
     }
   }
 
-  loadTrack(index: number) {
+  loadTrack(index: number) { // add safeguards? assumes valid track data
     if (this.sound) {
       this.sound.unload();
     }
@@ -87,7 +87,7 @@ export class GameplayComponent implements OnInit {
     this.playSong();
   }
 
-  getArtists(): string[] {
+  getArtists(): string[] { // add safeguards? assumes valid track data
     const uniqueArtists = new Set<string>(
       this.tracks.map((track: any) => track.track.artists[0].name)
     );
@@ -169,9 +169,10 @@ export class GameplayComponent implements OnInit {
   restartGame() {
     this.score = 0;
     this.wrongAnswers = 0;
-    this.round = 0;
+    this.round = 0; // should be 1?
     this.gameOver = false;
     this.winGame = false;
     this.loadTrack(0);
+    // reset answerSubmitted and resultMessage?
   }
 }

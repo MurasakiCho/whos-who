@@ -1,13 +1,10 @@
 <app-navigation></app-navigation>
 
 <div class="gameplay-container">
-  <img
-    [src]="image_url"
-    alt=""
-  />
+  <img [src]="image_url" alt="" />
 
   <h1>Guess the Artist</h1>
-  
+
   <!-- Score and Round Info -->
   <div class="game-info">
     <p>Score: {{ score }}</p>
@@ -31,7 +28,14 @@
   <!-- Song Choices -->
   <div class="choices">
     <h3>Who is the artist?</h3>
-    <button *ngFor="let artist of artists" (click)="submitAnswer(artist)" class="choice-button">{{ artist }}</button>
+    <button
+      *ngFor="let artist of artists"
+      (click)="submitAnswer(artist)"
+      [disabled]="answerSubmitted"
+      class="choice-button"
+    >
+      {{ artist }}
+    </button>
   </div>
 
   <!-- Result Feedback -->

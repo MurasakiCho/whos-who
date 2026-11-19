@@ -1,6 +1,6 @@
 import { Component, OnInit } from "@angular/core"
 import { Router } from "@angular/router"
-import { GameSettingsService } from "../../services/game-settings.service";
+import { GameSettingsService } from "../../services/game-settings.service"
 
 @Component({
   selector: "app-config",
@@ -8,7 +8,7 @@ import { GameSettingsService } from "../../services/game-settings.service";
   styleUrls: ["./config.component.css"],
 })
 export class ConfigComponent implements OnInit {
-  selectedDifficulty: string = 'normal';
+  selectedDifficulty?: string;
 
   constructor(private router: Router, private gameSettingsService: GameSettingsService) {}
 
@@ -20,8 +20,7 @@ export class ConfigComponent implements OnInit {
   }
 
   onDifficultyChange(newDifficulty: string): void {
-    this.selectedDifficulty = newDifficulty;
-    this.gameSettingsService.setDifficulty(this.selectedDifficulty);
+    this.gameSettingsService.setDifficulty(newDifficulty);
   }
 
   goToLeaderboard(): void {

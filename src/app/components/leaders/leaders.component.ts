@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from "@angular/core"
-import { LeaderboardService } from "../../../services/leaderboard.service";
+import { LeaderboardService } from "../../services/leaderboard.service";
 
 interface Player {
   name: string

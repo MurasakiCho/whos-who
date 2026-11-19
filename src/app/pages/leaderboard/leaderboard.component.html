@@ -1,0 +1,8 @@
+<app-navigation></app-navigation>
+<!-- no brackets for title, since its passing a static string-->
+<!-- without property binding (the brackets) on maxEntries and showSeeMore, they would get treated as strings-->
+<app-leaders
+  title="Leaderboard"
+  [maxEntries]="10"
+  [showSeeMore]="true"
+></app-leaders>
