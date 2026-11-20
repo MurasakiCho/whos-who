@@ -15,11 +15,12 @@ import { LeadersComponent } from "./components/leaders/leaders.component";
 import { NavigationComponent } from './components/navigation/navigation.component';
 import { AppRoutingModule } from './app-routing.module';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { CallbackComponent } from './components/callback/callback.component';
 
 
 
 @NgModule({
-  declarations: [AppComponent, HomeComponent, NavigationComponent, EndgameComponent, GameplayComponent, LeadersComponent, LeaderboardComponent, ConfigComponent],
+  declarations: [AppComponent, HomeComponent, NavigationComponent, EndgameComponent, GameplayComponent, LeadersComponent, LeaderboardComponent, ConfigComponent, CallbackComponent],
   imports: [BrowserModule, FormsModule, ReactiveFormsModule, FontAwesomeModule, AppRoutingModule],
   providers: [],
   bootstrap: [AppComponent],

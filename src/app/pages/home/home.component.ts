@@ -1,11 +1,7 @@
 import { Component, OnInit } from "@angular/core"
 import { Router } from "@angular/router"
 import { PlaylistService } from "../../services/playlist.service";
-import fetchFromSpotify, { request } from "../../services/api"
-
-const AUTH_ENDPOINT =
-  "https://nuod0t2zoe.execute-api.us-east-2.amazonaws.com/FT-Classroom/spotify-auth-token"
-const TOKEN_KEY = "whos-who-access-token"
+import fetchFromSpotify from "../../services/api"
 
 @Component({
   selector: "app-home",
@@ -23,30 +19,14 @@ export class HomeComponent implements OnInit {
   token: string = "BQDfR42dcQLyvZg2eDHlSNYH7lwf84qBoFbaIzUKBnYAkqCjkKXsFaUkX9tORYZPUkfZ8yENSRgnUEYxAu7S-5RewETIkXMgnpUDFp5Z4j1pbbAA8Q8"
   playlist: any
 
+  playlistLoading: boolean = false
+  playlistReady: boolean = false
+  playlistError: string = ""
+
+  private requestId = 0;
+
   ngOnInit(): void {
-  //   this.authLoading = true
-  //   const storedTokenString = localStorage.getItem(TOKEN_KEY)
-  //   if (storedTokenString) {
-  //     const storedToken = JSON.parse(storedTokenString)
-  //     if (storedToken.expiration > Date.now()) {
-  //       console.log("Token found in localstorage")
-  //       this.authLoading = false
-  //       this.token = storedToken.value
     this.loadGenres(this.token)
-  //       return
-  //     }
-  //   }
-  //   console.log("Sending request to AWS endpoint")
-  //   request(AUTH_ENDPOINT).then(({ access_token, expires_in }) => {
-  //     const newToken = {
-  //       value: access_token,
-  //       expiration: Date.now() + (expires_in - 20) * 1000,
-  //     }
-  //     localStorage.setItem(TOKEN_KEY, JSON.stringify(newToken))
-  //     this.authLoading = false
-  //     this.token = newToken.value
-  //     this.loadGenres(newToken.value)
-  //   })
   }
 
   loadGenres = async (t: any) => { // this is not loading anything from Spotify's API
@@ -66,26 +46,47 @@ export class HomeComponent implements OnInit {
     this.configLoading = false // why did you set it to true in the first place?
   }
   
-  setGenre(selectedGenre: any) { 
-    const genreObj = this.genres.find((g) => g.name === selectedGenre)
+  async setGenre(selectedPlaylistId: string) { 
+    const genreObj = this.genres.find((g) => g.playlist_id === selectedPlaylistId)
+    const currentRequestId = ++this.requestId;
 
-    if (genreObj) {
-      this.selectedGenre = genreObj.name
-      this.selectedPlaylistId = genreObj.playlist_id
+    if(!genreObj) return;
+
+    this.selectedGenre = genreObj.name
+    this.selectedPlaylistId = genreObj.playlist_id
+
+    this.playlistLoading = true
+    this.playlistReady = false
+    this.playlistError = ""
+
+    this.playlistService.setPlaylist(null)
+
+    try {
+      const playlist = await fetchFromSpotify({
+        token: this.token,
+        endpoint: "playlists/" + this.selectedPlaylistId,
+        params: ''
+      })
+
+      if(currentRequestId !== this.requestId) return;
+
+      this.playlistService.setPlaylist(playlist)
+      this.playlistReady = true
+
+    } catch (error) {
+      if(currentRequestId !== this.requestId) return;
+
+      this.playlistError = "Couldn't load the playlist. Please try again."
+      console.error("Failed to retrieve playlist: ", error);
+    } finally {
+      if(currentRequestId === this.requestId) this.playlistLoading = false
     }
-
-    fetchFromSpotify({token: this.token, endpoint: "playlists/" + this.selectedGenre, params: ''})
-    .then((value) => {
-      this.playlistService.setPlaylist(value)
-    })
-  }
+  } 
 
   playGame() {
-    if (!this.selectedGenre) {
-      alert("Please select a genre before playing!")
+    if (!this.playlistReady) {
       return
     }
-    console.log(this.playlistService.getPlaylist())
     this.router.navigate(["/gameplay"])
   }
 

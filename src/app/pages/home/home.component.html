@@ -13,10 +13,10 @@
 >
   <div *ngIf="authLoading || configLoading">Loading...</div>
   <div *ngIf="!authLoading && !configLoading">
- 
-    <select class="selector-box"
+    <select
+      class="selector-box"
       style="cursor: pointer"
-      [(ngModel)]="selectedGenre"
+      [(ngModel)]="selectedPlaylistId"
       (ngModelChange)="setGenre($event)"
     >
       <option [value]=""></option>
@@ -24,6 +24,14 @@
         {{ genre.name }}
       </option>
     </select>
+
+    <div *ngIf="playlistLoading">Loading playlist...</div>
+
+    <div *ngIf="playlistError">
+      {{ playlistError }}
+    </div>
+
+    <div *ngIf="playlistReady">Playlist is ready! Let's play.</div>
   </div>
 </div>
 
@@ -35,7 +43,13 @@
     margin-top: 50px;
   "
 >
-  <button (click)="playGame()" class="play-button">Play</button>
+  <button
+    (click)="playGame()"
+    [disabled]="!playlistReady || playlistLoading"
+    class="play-button"
+  >
+    Play
+  </button>
 </div>
 
 <app-leaders
