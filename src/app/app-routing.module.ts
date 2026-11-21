@@ -14,7 +14,7 @@ import { ConfigComponent } from './pages/config/config.component';
 const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full'},
   { path: "home", component: HomeComponent },
-  { path: "callbck", component: CallbackComponent},
+  { path: "callback", component: CallbackComponent},
   { path: 'endgame', component: EndgameComponent },
   { path: 'gameplay', component: GameplayComponent },
   { path: "leaderboard", component: LeaderboardComponent },

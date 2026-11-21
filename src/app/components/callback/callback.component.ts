@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { SpotifyAuthService } from '../../services/spotify-auth.service';
 
 @Component({
@@ -11,10 +11,11 @@ export class CallbackComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private spotifyAuthService: SpotifyAuthService
+    private spotifyAuthService: SpotifyAuthService,
+    private router: Router
   ) {}
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     const code = this.route.snapshot.queryParamMap.get('code');
     const state = this.route.snapshot.queryParamMap.get('state');
     const error = this.route.snapshot.queryParamMap.get('error');
@@ -23,12 +24,15 @@ export class CallbackComponent implements OnInit {
 
     if(error) {
       console.error('Spotify authorizaiton failed:', error);
+      sessionStorage.removeItem('spotify_auth_state');
+      this.spotifyAuthService.clearCodeVerifier();
       return;
     }
 
     if(!state || state !== savedState) {
       console.error('State mismatch. Possible CSRF attack.');
       sessionStorage.removeItem('spotify_auth_state');
+      this.spotifyAuthService.clearCodeVerifier();
       return;
     }
 
@@ -36,18 +40,23 @@ export class CallbackComponent implements OnInit {
 
     const verifier = this.spotifyAuthService.getCodeVerifier();
 
-    if(!code || !verifier) {
-      console.error('Missing authorization code or code verifier.');
+    if(!verifier || !code) {
+      console.error('Missing code verifier or authorization code.');
+      this.spotifyAuthService.clearCodeVerifier();
       return;
     }
 
-    this.spotifyAuthService.exchangeCodeforToken(code, verifier)
-      .then(token => {
-        console.log('Successfully authenticated!', token);
-      })
-      .catch(error => {
-        console.error('Token exchanged failed:', error);
-      })
-  }
+    try {
+      const tokens = await this.spotifyAuthService.exchangeCodeforToken(code, verifier);
 
+      this.spotifyAuthService.saveTokens(tokens);
+      this.spotifyAuthService.clearCodeVerifier();
+      
+      this.router.navigate(['/home']);
+
+    } catch (error) {
+      console.error('Token exchange failed:', error);
+      this.spotifyAuthService.clearCodeVerifier();
+    }
+  }
 }

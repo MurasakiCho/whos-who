@@ -11,45 +11,53 @@
     padding-top: 20px;
   "
 >
+  <div *ngIf="!isAuthenticated">
+    <button (click)="authorizeSpotify()">Connect to Spotify</button>
+    <p>Connect your Spotify account to start playing!</p>
+  </div>
+
   <div *ngIf="authLoading || configLoading">Loading...</div>
-  <div *ngIf="!authLoading && !configLoading">
-    <select
-      class="selector-box"
-      style="cursor: pointer"
-      [(ngModel)]="selectedPlaylistId"
-      (ngModelChange)="setGenre($event)"
-    >
-      <option [value]=""></option>
-      <option *ngFor="let genre of genres" [value]="genre.playlist_id">
-        {{ genre.name }}
-      </option>
-    </select>
 
-    <div *ngIf="playlistLoading">Loading playlist...</div>
+  <div *ngIf="isAuthenticated">
+    <div *ngIf="!authLoading && !configLoading">
+      <select
+        class="selector-box"
+        style="cursor: pointer"
+        [(ngModel)]="selectedPlaylistId"
+        (ngModelChange)="setGenre($event)"
+      >
+        <option [value]=""></option>
+        <option *ngFor="let genre of genres" [value]="genre.playlist_id">
+          {{ genre.name }}
+        </option>
+      </select>
 
-    <div *ngIf="playlistError">
-      {{ playlistError }}
+      <div *ngIf="playlistLoading">Loading playlist...</div>
+
+      <div *ngIf="playlistError">
+        {{ playlistError }}
+      </div>
+
+      <div *ngIf="playlistReady">Playlist is ready! Let's play.</div>
     </div>
 
-    <div *ngIf="playlistReady">Playlist is ready! Let's play.</div>
+    <div
+      style="
+        justify-content: center;
+        align-items: center;
+        display: flex;
+        margin-top: 50px;
+      "
+    >
+      <button
+        (click)="playGame()"
+        [disabled]="!playlistReady || playlistLoading"
+        class="play-button"
+      >
+        Play
+      </button>
+    </div>
   </div>
-</div>
-
-<div
-  style="
-    justify-content: center;
-    align-items: center;
-    display: flex;
-    margin-top: 50px;
-  "
->
-  <button
-    (click)="playGame()"
-    [disabled]="!playlistReady || playlistLoading"
-    class="play-button"
-  >
-    Play
-  </button>
 </div>
 
 <app-leaders

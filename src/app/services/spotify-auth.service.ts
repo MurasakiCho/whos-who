@@ -107,4 +107,89 @@ export class SpotifyAuthService {
 
     return response.json();
   }
+
+  saveTokens(tokens: any): void {
+    sessionStorage.setItem('spotify_access_token', tokens.access_token);
+
+    if(tokens.refresh_token) {
+      sessionStorage.setItem('spotify_refresh_token', tokens.refresh_token);
+    }
+
+    const expiresAt = Date.now() + (tokens.expires_in * 1000);
+
+    sessionStorage.setItem('spotify_token_expires_at', expiresAt.toString());
+  }
+
+  clearCodeVerifier(): void {
+    sessionStorage.removeItem('code_verifier');
+  }
+
+  isTokenExpired(): boolean {
+    const expiresAt = Number(
+      sessionStorage.getItem('spotify_token_expires_at')
+    );
+    return !Number.isFinite(expiresAt) || Date.now() >= expiresAt;
+  }
+
+  getAccessToken(): string | null {
+    return sessionStorage.getItem('spotify_access_token');
+  }
+
+  async refreshAccessToken(): Promise<string> {
+    const refreshToken = sessionStorage.getItem('spotify_refresh_token');
+
+    if(!refreshToken) {
+      sessionStorage.removeItem('spotify_access_token');
+      sessionStorage.removeItem('spotify_token_expires_at');
+
+      throw new Error('No refresh token available. Please reconnect Spotify.');
+    }
+
+    const body = new URLSearchParams({
+      client_id: this.clientId,
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken
+    });
+
+    const response = await fetch(
+      'https://accounts.spotify.com/api/token',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: body.toString()
+      }
+    );
+
+    const tokens =await response.json();
+
+    if(!response.ok) {
+      if(tokens.error === 'invalid_grant'){
+        sessionStorage.removeItem('spotify_access_token');
+        sessionStorage.removeItem('spotify_refresh_token');
+        sessionStorage.removeItem('spotify_token_expires_at');
+      }
+
+      throw new Error(`Spotify token refresh failed: ${tokens.error}`);
+    }
+
+    this.saveTokens(tokens);
+
+    return tokens.access_token;
+  }
+
+  async getValidAccessToken(): Promise<string | null> {
+    const accessToken = this.getAccessToken();
+
+    if(!accessToken){
+      return null;
+    }
+
+    if(this.isTokenExpired()) {
+      return await this.refreshAccessToken();
+    }
+
+    return accessToken;
+  }
 }

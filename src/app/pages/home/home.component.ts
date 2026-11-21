@@ -2,6 +2,7 @@ import { Component, OnInit } from "@angular/core"
 import { Router } from "@angular/router"
 import { PlaylistService } from "../../services/playlist.service";
 import fetchFromSpotify from "../../services/api"
+import { SpotifyAuthService } from "src/app/services/spotify-auth.service";
 
 @Component({
   selector: "app-home",
@@ -9,14 +10,19 @@ import fetchFromSpotify from "../../services/api"
   styleUrls: ["./home.component.css"],
 })
 export class HomeComponent implements OnInit {
-  constructor(private router: Router, private playlistService: PlaylistService) {}
+  constructor(
+    private router: Router, 
+    private playlistService: PlaylistService,
+    private spotifyAuthService: SpotifyAuthService
+  ) {}
+
+  isAuthenticated: boolean = false;
 
   genres: { name: string; playlist_id: string }[] = []
   selectedGenre: string = ""
   selectedPlaylistId: string = ""
   authLoading: boolean = false
   configLoading: boolean = false
-  token: string = "BQDfR42dcQLyvZg2eDHlSNYH7lwf84qBoFbaIzUKBnYAkqCjkKXsFaUkX9tORYZPUkfZ8yENSRgnUEYxAu7S-5RewETIkXMgnpUDFp5Z4j1pbbAA8Q8"
   playlist: any
 
   playlistLoading: boolean = false
@@ -26,10 +32,20 @@ export class HomeComponent implements OnInit {
   private requestId = 0;
 
   ngOnInit(): void {
-    this.loadGenres(this.token)
+    try {
+      const token = this.spotifyAuthService.getAccessToken();
+  
+      this.isAuthenticated = !!token;
+      
+    } catch (error) {
+      console.error('Authentication check failed', error);
+      this.isAuthenticated = false;
+    }
+
+    this.loadGenres();
   }
 
-  loadGenres = async (t: any) => { // this is not loading anything from Spotify's API
+  loadGenres = async () => { // this is not loading anything from Spotify's API
     this.configLoading = true
 
     this.genres = [
@@ -47,26 +63,41 @@ export class HomeComponent implements OnInit {
   }
   
   async setGenre(selectedPlaylistId: string) { 
-    const genreObj = this.genres.find((g) => g.playlist_id === selectedPlaylistId)
+    const genreObj = this.genres.find((g) => g.playlist_id === selectedPlaylistId);
     const currentRequestId = ++this.requestId;
 
-    if(!genreObj) return;
+    if(!genreObj) {
+      this.playlistLoading = false;
+      this.playlistReady = false;
+      this.playlistError = "";
+      this.playlistService.setPlaylist(null);
+      return;
+    }
 
-    this.selectedGenre = genreObj.name
-    this.selectedPlaylistId = genreObj.playlist_id
+    this.selectedGenre = genreObj.name;
+    this.selectedPlaylistId = genreObj.playlist_id;
 
-    this.playlistLoading = true
-    this.playlistReady = false
-    this.playlistError = ""
+    this.playlistLoading = true;
+    this.playlistReady = false;
+    this.playlistError = "";
 
     this.playlistService.setPlaylist(null)
 
     try {
+      const token = await this.spotifyAuthService.getValidAccessToken();
+
+      if(currentRequestId !== this.requestId) return;
+
+      if(!token) {
+        this.isAuthenticated = false;
+        return;
+      }
+
       const playlist = await fetchFromSpotify({
-        token: this.token,
+        token: token,
         endpoint: "playlists/" + this.selectedPlaylistId,
         params: ''
-      })
+      });
 
       if(currentRequestId !== this.requestId) return;
 
@@ -78,8 +109,12 @@ export class HomeComponent implements OnInit {
 
       this.playlistError = "Couldn't load the playlist. Please try again."
       console.error("Failed to retrieve playlist: ", error);
+
+      if(!this.spotifyAuthService.getAccessToken()) {
+        this.isAuthenticated = false;
+      }
     } finally {
-      if(currentRequestId === this.requestId) this.playlistLoading = false
+      if(currentRequestId === this.requestId) this.playlistLoading = false;
     }
   } 
 
@@ -90,4 +125,10 @@ export class HomeComponent implements OnInit {
     this.router.navigate(["/gameplay"])
   }
 
+  authorizeSpotify(): void {
+    this.spotifyAuthService.authorize();
+  }
+
+
+  
 }
